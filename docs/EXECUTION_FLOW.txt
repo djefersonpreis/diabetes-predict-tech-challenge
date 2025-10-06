@@ -1,0 +1,210 @@
+                        🔄 FLUXO DETALHADO DE EXECUÇÃO
+    ════════════════════════════════════════════════════════════════════════
+
+    FASE 1: INICIALIZAÇÃO DOS CONTAINERS
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    docker-compose up -d
+           │
+           ├─► 🔨 Build da imagem API (Dockerfile.api)
+           │   ├─ Python 3.9-slim
+           │   ├─ Instalar dependências (requirements.txt)
+           │   └─ Copiar código fonte
+           │
+           ├─► 🔨 Build da imagem Dashboard (Dockerfile.dashboard)  
+           │   ├─ Python 3.9-slim
+           │   ├─ Instalar dependências (requirements.txt)
+           │   └─ Copiar código fonte
+           │
+           ├─► 🚀 Iniciar Container API (diabetes-api)
+           │   ├─ Port mapping: 8000:8000
+           │   ├─ Volume: ./data:/app/data
+           │   ├─ Volume: ./models:/app/models
+           │   └─ Command: uvicorn src.api.main:app --host 0.0.0.0
+           │
+           └─► 📊 Iniciar Container Dashboard (diabetes-dashboard)
+               ├─ Port mapping: 8501:8501
+               ├─ Volume: ./data:/app/data
+               ├─ Volume: ./models:/app/models
+               └─ Command: streamlit run src/dashboard/app.py
+
+    ⏱️  Tempo estimado: 2-3 minutos (primeira execução)
+
+    ════════════════════════════════════════════════════════════════════════
+
+    FASE 2: PIPELINE DE DADOS (Primeira Execução)
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    Executar: make pipeline  ou  docker-compose exec api python run_pipeline.py
+
+    2.1 📥 COLETA DE DADOS (DataCollector)
+        │
+        ├─► 🌐 Tentativa de download do Kaggle
+        │   URL: kaggle.com/datasets/.../diabetes-health-indicators-dataset
+        │   
+        ├─► 📦 Se sucesso: Extração do ZIP → CSV
+        │   └─ diabetes_health_indicators.csv
+        │   
+        ├─► 🎲 Se falha: Geração de dados sintéticos
+        │   └─ Criar 1000 registros de exemplo
+        │   
+        └─► 💾 Armazenamento no SQLite
+            └─ Tabela: raw_data (22 colunas)
+
+    ⏱️  Tempo: 30-60 segundos
+
+    2.2 🔧 PROCESSAMENTO (DataProcessor)
+        │
+        ├─► 📋 Carregar dados brutos
+        │   └─ SELECT * FROM raw_data
+        │
+        ├─► 🧹 Limpeza de dados
+        │   ├─ Remover valores nulos
+        │   ├─ Converter diabetes para binário (0/1)
+        │   └─ Tratar outliers no BMI
+        │
+        ├─► 🎯 Seleção de features principais
+        │   └─ 12 features: highbp, highchol, bmi, smoker, etc.
+        │
+        ├─► 🔢 Normalização da idade
+        │   └─ Mapear categorias para idades aproximadas
+        │
+        └─► 💾 Salvar dados processados
+            └─ Tabela: processed_data
+
+    ⏱️  Tempo: 20-30 segundos
+
+    2.3 🤖 TREINAMENTO ML (DiabetesMLModel)
+        │
+        ├─► 📊 Carregar dados processados
+        │   └─ SELECT * FROM processed_data
+        │
+        ├─► 🔀 Divisão treino/teste (80/20)
+        │   └─ Estratificação por classe
+        │
+        ├─► 🌲 Treinamento Random Forest
+        │   ├─ n_estimators=100
+        │   ├─ max_depth=10
+        │   ├─ min_samples_split=5
+        │   └─ random_state=42
+        │
+        ├─► ✅ Validação e métricas
+        │   ├─ Acurácia
+        │   ├─ Precisão
+        │   ├─ Recall
+        │   └─ F1-Score
+        │
+        ├─► 💾 Persistir modelo
+        │   ├─ models/diabetes_model.joblib
+        │   ├─ models/scaler.joblib
+        │   └─ models/feature_names.joblib
+        │
+        └─► 📈 Salvar métricas
+            └─ Tabela: model_metrics
+
+    ⏱️  Tempo: 1-2 minutos
+
+    ════════════════════════════════════════════════════════════════════════
+
+    FASE 3: OPERAÇÃO PRODUTIVA
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    3.1 🚀 API FASTAPI (Container: diabetes-api)
+        │
+        ├─► 🌐 Servidor HTTP ativo em localhost:8000
+        │
+        ├─► 📋 Endpoints disponíveis:
+        │   ├─ GET  /                  → Info da API
+        │   ├─ POST /collect-data      → Coletar dados
+        │   ├─ POST /process-data      → Processar dados  
+        │   ├─ POST /train-model       → Treinar modelo
+        │   ├─ POST /predict           → Fazer predição
+        │   ├─ GET  /model-info        → Info do modelo
+        │   ├─ GET  /data-stats        → Estatísticas
+        │   └─ GET  /health            → Health check
+        │
+        └─► 📚 Documentação automática:
+            ├─ /docs     → Swagger UI
+            └─ /redoc    → ReDoc
+
+    3.2 📊 DASHBOARD STREAMLIT (Container: diabetes-dashboard)
+        │
+        ├─► 🌐 Servidor Web ativo em localhost:8501
+        │
+        └─► 📱 Páginas disponíveis:
+            ├─ 📊 Visão Geral     → Status e estatísticas
+            ├─ 📥 Coleta Dados    → Interface de coleta
+            ├─ 📈 Análise Explor  → Gráficos e correlações
+            ├─ 🤖 Modelo ML       → Info e métricas
+            └─ 🎯 Predição        → Interface interativa
+
+    ════════════════════════════════════════════════════════════════════════
+
+    FLUXO DE PREDIÇÃO EM TEMPO REAL
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    Usuário acessa Dashboard → Página "Predição"
+           │
+           ├─► 📝 Preenche formulário:
+           │   ├─ Idade: 45 anos
+           │   ├─ Sexo: Masculino  
+           │   ├─ BMI: 30.0
+           │   ├─ Pressão Alta: Sim
+           │   ├─ Colesterol Alto: Sim
+           │   └─ ... (outras 7 features)
+           │
+           ├─► 🔄 Submit → API Request
+           │   POST /predict
+           │   {
+           │     "age": 45,
+           │     "sex": 1,
+           │     "bmi": 30.0,
+           │     "highbp": 1,
+           │     ...
+           │   }
+           │
+           ├─► 🤖 Processamento na API:
+           │   ├─ Carregar modelo treinado
+           │   ├─ Converter idade para categoria
+           │   ├─ Aplicar modelo Random Forest
+           │   ├─ Calcular probabilidades
+           │   └─ Determinar nível de risco
+           │
+           ├─► 📊 Resposta da API:
+           │   {
+           │     "prediction": 1,
+           │     "probability": {
+           │       "não_diabético": 0.25,
+           │       "diabético": 0.75
+           │     },
+           │     "risk_level": "Alto"
+           │   }
+           │
+           └─► 🎯 Exibição no Dashboard:
+               ├─ ⚠️ "Risco de Diabetes Detectado"
+               ├─ 📈 Gráfico de probabilidades  
+               ├─ 🎯 Nível de risco: Alto (75%)
+               └─ 💡 Recomendações personalizadas
+
+    ⏱️  Tempo de resposta: < 1 segundo
+
+    ════════════════════════════════════════════════════════════════════════
+
+                            🛠️  COMANDOS DE MANUTENÇÃO
+
+    📊 Monitoramento:
+       docker-compose logs -f              # Logs em tempo real
+       docker-compose ps                   # Status containers
+       make status                         # Status resumido
+
+    🔧 Manutenção:
+       make pipeline                       # Re-executar pipeline
+       make restart                        # Reiniciar serviços  
+       make shell-api                      # Acessar container API
+       make clean                          # Limpeza completa
+
+    🧪 Testes:
+       curl http://localhost:8000/health   # Testar API
+       make test-api                       # Teste automatizado
+
+    ════════════════════════════════════════════════════════════════════════

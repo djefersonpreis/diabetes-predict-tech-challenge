@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+
+# Ambientes virtuais
+venv/
+.venv/
+
+# Logs
+*.log
+logs/
+
+# Dados temporários (exceto estrutura)
+data/*.csv
+data/*.zip
+data/*.sqlite
+
+# Modelos treinados temporários
+models/*.joblib
+models/*.pkl
+
+.env

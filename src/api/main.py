@@ -19,19 +19,18 @@ app = FastAPI(
 )
 
 
-# Modelos Pydantic para validação
 class DiabetesFeatures(BaseModel):
-    highbp: int  # 0 ou 1
-    highchol: int  # 0 ou 1
+    highbp: int
+    highchol: int
     bmi: float
-    smoker: int  # 0 ou 1
-    stroke: int  # 0 ou 1
-    heartdiseaseorattack: int  # 0 ou 1
-    physactivity: int  # 0 ou 1
-    genhlth: int  # 1-5
-    age: int  # Idade real (será convertida)
-    sex: int  # 0: feminino, 1: masculino
-    diffwalk: int  # 0 ou 1
+    smoker: int
+    stroke: int
+    heartdiseaseorattack: int
+    physactivity: int
+    genhlth: int
+    age: int
+    sex: int
+    diffwalk: int
 
 
 class PredictionResponse(BaseModel):
@@ -40,7 +39,6 @@ class PredictionResponse(BaseModel):
     risk_level: str
 
 
-# Instâncias dos serviços
 data_collector = DataCollector()
 data_processor = DataProcessor()
 ml_model = DiabetesMLModel()
