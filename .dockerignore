@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+
+# Ambientes virtuais
+venv/
+.venv/
+
+# IDE
+.vscode/
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Dados temporários (exceto estrutura)
+data/*.csv
+data/*.zip
+data/*.sqlite
+
+# Modelos treinados temporários
+models/*.joblib
+models/*.pkl
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentação
+*.md
+docs/
